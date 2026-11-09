@@ -44,7 +44,9 @@ window.zarpaMedicao = (function () {
   var CHAVE = 'zarpa-medicao';
   var ID = 'GTM-MQTSGPVS';
   var carregado = false;
+  var pronto = false;
   var concedido = false;
+  var visualizacao = false;
   var eventos = { whatsapp_click: true, diagnostico_click: true, email_click: true, instagram_click: true };
   function ler() {
     try { return localStorage.getItem(CHAVE); } catch (e) { return null; }
@@ -62,6 +64,11 @@ window.zarpaMedicao = (function () {
       'personalization_storage': 'denied'
     });
   }
+  function sinalizar() {
+    if (!concedido || visualizacao || !pronto) return;
+    visualizacao = true;
+    dataLayer.push({ event: 'zarpa_analytics_consent_granted' });
+  }
   function injetar() {
     if (carregado) return;
     carregado = true;
@@ -70,6 +77,10 @@ window.zarpaMedicao = (function () {
       w[l].push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' });
       var f = d.getElementsByTagName(s)[0], j = d.createElement(s), dl = l != 'dataLayer' ? '&l=' + l : '';
       j.async = true;
+      j.onload = function () {
+        pronto = true;
+        sinalizar();
+      };
       j.src = 'https://www.googletagmanager.com/gtm.js?id=' + i + dl;
       f.parentNode.insertBefore(j, f);
     })(window, document, 'script', 'dataLayer', ID);
@@ -79,6 +90,7 @@ window.zarpaMedicao = (function () {
     concedido = true;
     consentimento('granted');
     injetar();
+    sinalizar();
   }
   function recusar() {
     gravar('recusada');
