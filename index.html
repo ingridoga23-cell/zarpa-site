@@ -25,6 +25,75 @@
 <meta name="twitter:description" content="Melhore a gestão do seu delivery com a Zarpa. Consultoria para restaurantes no iFood e outros canais, com análise de indicadores, cardápio e operação.">
 <meta name="twitter:image" content="https://zarpadelivery.com.br/og-image.jpg">
 <meta name="twitter:image:alt" content="Zarpa Consultoria, consultoria de delivery para restaurantes">
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('consent', 'default', {
+  'ad_storage': 'denied',
+  'ad_user_data': 'denied',
+  'ad_personalization': 'denied',
+  'analytics_storage': 'denied',
+  'functionality_storage': 'denied',
+  'personalization_storage': 'denied',
+  'security_storage': 'granted',
+  'wait_for_update': 500
+});
+gtag('set', 'ads_data_redaction', true);
+gtag('set', 'url_passthrough', false);
+window.zarpaMedicao = (function () {
+  var CHAVE = 'zarpa-medicao';
+  var ID = 'GTM-MQTSGPVS';
+  var carregado = false;
+  var concedido = false;
+  var eventos = { whatsapp_click: true, diagnostico_click: true, email_click: true, instagram_click: true };
+  function ler() {
+    try { return localStorage.getItem(CHAVE); } catch (e) { return null; }
+  }
+  function gravar(valor) {
+    try { localStorage.setItem(CHAVE, valor); } catch (e) {}
+  }
+  function consentimento(analytics) {
+    gtag('consent', 'update', {
+      'ad_storage': 'denied',
+      'ad_user_data': 'denied',
+      'ad_personalization': 'denied',
+      'analytics_storage': analytics,
+      'functionality_storage': 'denied',
+      'personalization_storage': 'denied'
+    });
+  }
+  function injetar() {
+    if (carregado) return;
+    carregado = true;
+    (function (w, d, s, l, i) {
+      w[l] = w[l] || [];
+      w[l].push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' });
+      var f = d.getElementsByTagName(s)[0], j = d.createElement(s), dl = l != 'dataLayer' ? '&l=' + l : '';
+      j.async = true;
+      j.src = 'https://www.googletagmanager.com/gtm.js?id=' + i + dl;
+      f.parentNode.insertBefore(j, f);
+    })(window, document, 'script', 'dataLayer', ID);
+  }
+  function aceitar() {
+    gravar('aceita');
+    concedido = true;
+    consentimento('granted');
+    injetar();
+  }
+  function recusar() {
+    gravar('recusada');
+    concedido = false;
+    consentimento('denied');
+  }
+  function medir(nome) {
+    if (!eventos[nome] || !concedido) return;
+    dataLayer.push({ event: nome });
+  }
+  if (ler() === 'aceita') aceitar();
+  return { ler: ler, aceitar: aceitar, recusar: recusar, medir: medir };
+})();
+window.zarpaMedir = window.zarpaMedicao.medir;
+</script>
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -433,6 +502,15 @@ footer a { color: inherit; }
   .fixo.some { transform: translateY(140%); opacity: 0; }
   footer { padding-bottom: 96px; }
 }
+
+.medicao { position: fixed; z-index: 35; left: max(12px, env(safe-area-inset-left, 0px)); right: max(12px, env(safe-area-inset-right, 0px)); bottom: calc(12px + env(safe-area-inset-bottom, 0px)); display: flex; justify-content: center; }
+.medicao[hidden] { display: none; }
+.medicao-caixa { width: min(720px, 100%); background: var(--bg); color: var(--fg); border: 1px solid var(--rule); border-radius: 24px; box-shadow: 0 18px 40px -24px rgba(8,52,61,.55); padding: 18px 20px; display: flex; flex-direction: column; gap: 10px; }
+.medicao .eyebrow { font-family: var(--body); }
+.medicao-caixa p { font-size: 15px; color: var(--muted); }
+.medicao-acoes { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.medicao-acoes a, .medicao-link { font-size: 14px; font-weight: 700; color: var(--brand); background: none; border: 0; padding: 0; cursor: pointer; font-family: inherit; text-decoration: underline; text-underline-offset: 3px; }
+@media (max-width: 860px) { .medicao { bottom: calc(84px + env(safe-area-inset-bottom, 0px)); } }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
@@ -885,7 +963,7 @@ footer a { color: inherit; }
 <footer>
   <div class="wrap">
     <span>Zarpa Consultoria · ORCODES Desenvolvimento de Softwares LTDA · CNPJ 35.100.888/0001-19 · Delivery com direção.</span>
-    <span><a href="https://www.instagram.com/zarpaconsultoria/" target="_blank" rel="noopener">Instagram @zarpaconsultoria</a> · <a href="#privacidade">Política de privacidade</a> · zarpadelivery.com.br · © 2026</span>
+    <span><a href="https://www.instagram.com/zarpaconsultoria/" target="_blank" rel="noopener">Instagram @zarpaconsultoria</a> · <a href="#privacidade">Política de privacidade</a> · <button type="button" class="medicao-link" id="medicao-preferencias">Preferências de medição</button> · zarpadelivery.com.br · © 2026</span>
   </div>
   <div class="wrap">
     <details id="privacidade" class="priv">
@@ -893,11 +971,23 @@ footer a { color: inherit; }
       <p>A Zarpa Consultoria usa os dados que você envia (nome, telefone, e-mail, nome da loja e informações de vendas) só para responder ao seu contato, preparar propostas e prestar os serviços contratados.</p>
       <p>Não vendemos nem compartilhamos seus dados com terceiros para fins de marketing. O acesso aos portais da loja é feito por usuário próprio, liberado pelo dono, e pode ser removido a qualquer momento.</p>
       <p>Você pode pedir acesso, correção ou exclusão dos seus dados, como prevê a LGPD (Lei 13.709/2018), pelo e-mail zarpaconsultoria@gmail.com.</p>
+      <p>A medição de visitas, feita com o Google Analytics por meio do Google Tag Manager, só começa se você aceitar. Sem essa escolha, o contêiner não é carregado. A medição não inclui telefone, e-mail nem o texto de mensagens. Dá para aceitar, recusar ou mudar de ideia em Preferências de medição.</p>
       <p>Responsável pelos dados: ORCODES Desenvolvimento de Softwares LTDA (Zarpa Consultoria), CNPJ 35.100.888/0001-19, Rua Aimberê, 992, apto. 35, Perdizes, São Paulo/SP.</p>
     </details>
   </div>
 </footer>
 <a class="fixo" href="https://wa.me/5512988600218?text=Ol%C3%A1%21%20Vim%20pelo%20site%20da%20Zarpa%20e%20quero%20saber%20sobre%20a%20consultoria%20para%20a%20minha%20loja." target="_blank" rel="noopener">Chamar no WhatsApp <span aria-hidden="true">→</span></a>
+<div class="medicao" id="medicao" hidden>
+  <div class="medicao-caixa" role="dialog" aria-labelledby="medicao-titulo" aria-describedby="medicao-texto">
+    <p class="eyebrow" id="medicao-titulo" tabindex="-1">Medição de visitas</p>
+    <p id="medicao-texto">Podemos medir visitas anônimas desta página com o Google Analytics, só se você aceitar. Sem essa escolha, nenhuma tag de medição é carregada. Telefone, e-mail e texto de mensagem não entram nessa medição.</p>
+    <div class="medicao-acoes">
+      <button type="button" class="btn prim" id="medicao-aceitar">Aceitar</button>
+      <button type="button" class="btn sec" id="medicao-recusar">Recusar</button>
+      <a href="#privacidade">Política de privacidade</a>
+    </div>
+  </div>
+</div>
 
 <script>
 (function () {
@@ -979,6 +1069,23 @@ footer a { color: inherit; }
     } catch (e) { selecionar(); }
     setTimeout(function () { btn.textContent = 'Copiar'; }, 2200);
   });
+
+  var aviso = document.getElementById('medicao');
+  var aceitarMed = document.getElementById('medicao-aceitar');
+  var recusarMed = document.getElementById('medicao-recusar');
+  var preferencias = document.getElementById('medicao-preferencias');
+  var tituloMed = document.getElementById('medicao-titulo');
+  if (aviso && window.zarpaMedicao && aceitarMed && recusarMed && preferencias) {
+    function abrirMedicao() {
+      aviso.hidden = false;
+      if (tituloMed) tituloMed.focus();
+    }
+    function fecharMedicao() { aviso.hidden = true; }
+    if (!window.zarpaMedicao.ler()) abrirMedicao();
+    aceitarMed.addEventListener('click', function () { window.zarpaMedicao.aceitar(); fecharMedicao(); });
+    recusarMed.addEventListener('click', function () { window.zarpaMedicao.recusar(); fecharMedicao(); });
+    preferencias.addEventListener('click', abrirMedicao);
+  }
 })();
 </script>
 </body>
